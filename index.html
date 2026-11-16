@@ -464,6 +464,48 @@
 
     .result-screen .primary-button { display: block; margin: auto; }
 
+    .missed-review {
+      margin: 30px 0 0;
+      padding-top: 25px;
+      border-top: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .missed-review h2 {
+      margin: 0 0 16px;
+      font-size: 19px;
+    }
+
+    .missed-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .missed-item {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel-raised);
+    }
+
+    .missed-item h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .missed-item p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .missed-item strong { color: var(--text); }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -615,6 +657,7 @@
     let questionIndex = 0;
     let score = 0;
     let answered = false;
+    let missedAnswers = [];
 
     function renderQuestion() {
       const current = questions[questionIndex];
@@ -678,6 +721,12 @@
         content.querySelector("#score").textContent = score;
         content.querySelector(".score-pill").setAttribute("aria-label", `Score ${score}`);
       } else {
+        missedAnswers.push({
+          question: current.question,
+          selected: current.answers[selected],
+          correct: current.answers[current.correct],
+          fact: current.fact
+        });
         event.currentTarget.classList.add("wrong");
         buttons[current.correct].classList.add("reveal-correct");
         feedback.textContent = `Not quite. ${current.fact}`;
@@ -718,6 +767,21 @@
           <h1>${result.title}</h1>
           <p class="result-description">${result.description}</p>
           <div class="final-score" aria-label="${score} out of 10 correct">${score}<span>/ 10 correct</span></div>
+          ${missedAnswers.length ? `
+            <section class="missed-review" aria-labelledby="missed-title">
+              <h2 id="missed-title">Review missed answers</h2>
+              <ol class="missed-list">
+                ${missedAnswers.map(missed => `
+                  <li class="missed-item">
+                    <h3>${missed.question}</h3>
+                    <p><strong>Your answer:</strong> ${missed.selected}</p>
+                    <p><strong>Correct answer:</strong> ${missed.correct}</p>
+                    <p><strong>Did you know?</strong> ${missed.fact}</p>
+                  </li>
+                `).join("")}
+              </ol>
+            </section>
+          ` : ""}
           <button class="primary-button" id="restart" type="button">Explore again <span aria-hidden="true">↻</span></button>
         </div>
       `;
@@ -729,6 +793,7 @@
       questionIndex = 0;
       score = 0;
       answered = false;
+      missedAnswers = [];
       renderQuestion();
       content.querySelector(".answer").focus();
     }

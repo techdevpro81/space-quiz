@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Missed-answer review tests</title>
+</head>
+<body>
+  <h1>Missed-answer review tests</h1>
+  <p id="status" role="status">Running…</p>
+  <iframe id="quiz" title="Quiz under test" src="../index.html"></iframe>
+  <script>
+    const status = document.querySelector("#status");
+    const frame = document.querySelector("#quiz");
+    const correctAnswers = [1, 1, 1, 1, 2, 3, 0, 2, 1, 3];
+
+    function assert(condition, message) {
+      if (!condition) throw new Error(message);
+    }
+
+    function answer(index) {
+      frame.contentDocument.querySelector(`.answer[data-index="${index}"]`).click();
+      frame.contentDocument.querySelector("#next").click();
+    }
+
+    frame.addEventListener("load", () => {
+      try {
+        answer(2);
+        correctAnswers.slice(1).forEach(answer);
+
+        const doc = frame.contentDocument;
+        const item = doc.querySelector(".missed-item");
+        assert(doc.querySelectorAll(".missed-item").length === 1, "Expected one missed answer");
+        assert(item.querySelector("h3").textContent === "Which planet has the most moons?", "Question is missing");
+        assert(item.textContent.includes("Your answer: Neptune"), "Selected answer is missing");
+        assert(item.textContent.includes("Correct answer: Saturn"), "Correct answer is missing");
+        assert(item.textContent.includes("Saturn leads the solar system"), "Explanatory fact is missing");
+        assert(doc.querySelector(".missed-review").getAttribute("aria-labelledby") === "missed-title", "Review section is not labelled");
+
+        doc.querySelector("#restart").click();
+        correctAnswers.forEach(answer);
+        assert(!frame.contentDocument.querySelector(".missed-review"), "Perfect score should not show an empty review");
+        assert(frame.contentDocument.querySelector(".final-score").getAttribute("aria-label") === "10 out of 10 correct", "Perfect score is incorrect");
+
+        status.textContent = "All missed-answer review tests passed.";
+      } catch (error) {
+        status.textContent = `Test failed: ${error.message}`;
+        status.setAttribute("data-result", "failed");
+      }
+    }, { once: true });
+  </script>
+</body>
+</html>
