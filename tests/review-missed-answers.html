@@ -7,12 +7,13 @@
 </head>
 <body>
   <h1>Missed-answer review tests</h1>
-  <p id="status" role="status">Running…</p>
+  <p id="status" role="status" aria-live="polite">Running…</p>
   <iframe id="quiz" title="Quiz under test" src="../index.html"></iframe>
   <script>
     const status = document.querySelector("#status");
     const frame = document.querySelector("#quiz");
     const correctAnswers = [1, 1, 1, 1, 2, 3, 0, 2, 1, 3];
+    const missedQuestions = [0, 5];
 
     function assert(condition, message) {
       if (!condition) throw new Error(message);
@@ -25,22 +26,29 @@
 
     frame.addEventListener("load", () => {
       try {
-        answer(2);
-        correctAnswers.slice(1).forEach(answer);
+        correctAnswers.forEach((correct, question) =>
+          answer(missedQuestions.includes(question) ? 0 : correct)
+        );
 
         const doc = frame.contentDocument;
-        const item = doc.querySelector(".missed-item");
-        assert(doc.querySelectorAll(".missed-item").length === 1, "Expected one missed answer");
-        assert(item.querySelector("h3").textContent === "Which planet has the most moons?", "Question is missing");
-        assert(item.textContent.includes("Your answer: Neptune"), "Selected answer is missing");
-        assert(item.textContent.includes("Correct answer: Saturn"), "Correct answer is missing");
-        assert(item.textContent.includes("Saturn leads the solar system"), "Explanatory fact is missing");
+        const items = [...doc.querySelectorAll(".missed-item")];
+        const firstItem = items[0];
+        const secondItem = items[1];
+        assert(items.length === 2, "Expected one review item for each missed answer");
+        assert(firstItem.querySelector("h3").textContent === "Which planet has the most moons?", "Question is missing");
+        assert(firstItem.textContent.includes("Your answer: Jupiter"), "Selected answer is missing");
+        assert(firstItem.textContent.includes("Correct answer: Saturn"), "Correct answer is missing");
+        assert(firstItem.textContent.includes("Saturn leads the solar system"), "Explanatory fact is missing");
+        assert(secondItem.textContent.includes("Your answer: Buzz Aldrin"), "Second selected answer is missing");
+        assert(secondItem.textContent.includes("Correct answer: Neil Armstrong"), "Second correct answer is missing");
         assert(doc.querySelector(".missed-review").getAttribute("aria-labelledby") === "missed-title", "Review section is not labelled");
+        assert(doc.activeElement?.id === "missed-title", "Focus did not move to the review heading");
 
         doc.querySelector("#restart").click();
         correctAnswers.forEach(answer);
         assert(!frame.contentDocument.querySelector(".missed-review"), "Perfect score should not show an empty review");
         assert(frame.contentDocument.querySelector(".final-score").getAttribute("aria-label") === "10 out of 10 correct", "Perfect score is incorrect");
+        assert(frame.contentDocument.activeElement?.id === "restart", "Focus did not move to the restart button");
 
         status.textContent = "All missed-answer review tests passed.";
       } catch (error) {

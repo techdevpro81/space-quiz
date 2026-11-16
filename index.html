@@ -476,6 +476,11 @@
       font-size: 19px;
     }
 
+    .missed-review h2:focus {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
     .missed-list {
       display: grid;
       gap: 12px;
@@ -766,10 +771,10 @@
           <p class="eyebrow">Mission complete</p>
           <h1>${result.title}</h1>
           <p class="result-description">${result.description}</p>
-          <div class="final-score" aria-label="${score} out of 10 correct">${score}<span>/ 10 correct</span></div>
+          <div class="final-score" aria-label="${score} out of ${questions.length} correct">${score}<span>/ ${questions.length} correct</span></div>
           ${missedAnswers.length ? `
             <section class="missed-review" aria-labelledby="missed-title">
-              <h2 id="missed-title">Review missed answers</h2>
+              <h2 id="missed-title" tabindex="-1">Review missed answers</h2>
               <ol class="missed-list">
                 ${missedAnswers.map(missed => `
                   <li class="missed-item">
@@ -786,7 +791,7 @@
         </div>
       `;
       content.querySelector("#restart").addEventListener("click", restart);
-      content.querySelector("#restart").focus();
+      (content.querySelector("#missed-title") ?? content.querySelector("#restart")).focus();
     }
 
     function restart() {
