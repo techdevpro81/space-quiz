@@ -465,14 +465,15 @@
     .result-screen .primary-button { display: block; margin: auto; }
 
     .missed-review {
-      margin: 0 auto 28px;
+      margin: 30px 0 0;
+      padding-top: 25px;
+      border-top: 1px solid var(--line);
       text-align: left;
     }
 
     .missed-review h2 {
-      margin: 0 0 14px;
+      margin: 0 0 16px;
       font-size: 19px;
-      text-align: center;
     }
 
     .missed-review h2:focus {
@@ -480,28 +481,35 @@
       outline-offset: 4px;
     }
 
-    .missed-review ol {
+    .missed-list {
       display: grid;
       gap: 12px;
       margin: 0;
-      padding-left: 24px;
+      padding: 0;
+      list-style: none;
     }
 
-    .missed-review li {
-      padding: 15px 16px;
+    .missed-item {
+      padding: 16px;
       border: 1px solid var(--line);
       border-radius: 14px;
       background: var(--panel-raised);
     }
 
-    .missed-review h3 {
+    .missed-item h3 {
       margin: 0 0 10px;
       font-size: 15px;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
-    .missed-review p { margin: 5px 0 0; }
-    .missed-review .missed-fact { color: var(--muted); }
+    .missed-item p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .missed-item strong { color: var(--text); }
 
     .sr-only {
       position: absolute;
@@ -720,8 +728,8 @@
       } else {
         missedAnswers.push({
           question: current.question,
-          selectedAnswer: current.answers[selected],
-          correctAnswer: current.answers[current.correct],
+          selected: current.answers[selected],
+          correct: current.answers[current.correct],
           fact: current.fact
         });
         event.currentTarget.classList.add("wrong");
@@ -765,15 +773,15 @@
           <p class="result-description">${result.description}</p>
           <div class="final-score" aria-label="${score} out of ${questions.length} correct">${score}<span>/ ${questions.length} correct</span></div>
           ${missedAnswers.length ? `
-            <section class="missed-review" aria-labelledby="missed-review-title">
-              <h2 id="missed-review-title" tabindex="-1">Review missed answers</h2>
-              <ol>
-                ${missedAnswers.map(({ question, selectedAnswer, correctAnswer, fact }) => `
-                  <li>
-                    <h3>${question}</h3>
-                    <p><strong>Your answer:</strong> ${selectedAnswer}</p>
-                    <p><strong>Correct answer:</strong> ${correctAnswer}</p>
-                    <p class="missed-fact"><strong>Did you know?</strong> ${fact}</p>
+            <section class="missed-review" aria-labelledby="missed-title">
+              <h2 id="missed-title" tabindex="-1">Review missed answers</h2>
+              <ol class="missed-list">
+                ${missedAnswers.map(missed => `
+                  <li class="missed-item">
+                    <h3>${missed.question}</h3>
+                    <p><strong>Your answer:</strong> ${missed.selected}</p>
+                    <p><strong>Correct answer:</strong> ${missed.correct}</p>
+                    <p><strong>Did you know?</strong> ${missed.fact}</p>
                   </li>
                 `).join("")}
               </ol>
@@ -783,7 +791,7 @@
         </div>
       `;
       content.querySelector("#restart").addEventListener("click", restart);
-      (content.querySelector("#missed-review-title") ?? content.querySelector("#restart")).focus();
+      (content.querySelector("#missed-title") ?? content.querySelector("#restart")).focus();
     }
 
     function restart() {
